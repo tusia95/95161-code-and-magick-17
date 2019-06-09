@@ -5,24 +5,28 @@ var HEXAGRAM_DISTANCE = 50;
 var HEXAGRAM_WIDTH = 40;
 var HEXAGRAM_MAX_HEIGHT = 150;
 var HEXAGRAM_FIRST_X = 120;
+var TIME_OFFSET = -10;
+var NAME_OFFSET = 16;
+var COLUMN_OFFSET = 90;
 
 var renderCloud = function (ctx, x, y, color) {
   ctx.fillStyle = color;
-  ctx.beginPath();
   ctx.fillRect(x, y, CLOUD_WIDTH, CLOUD_HEIGHT);
 };
 
 var getIndexOfYou = function (names) {
   var yourIndex;
-  for (var i = 0; i < names.length; i++) {
-    if (names[i] === 'Вы') {
-      yourIndex = i;
+  while (yourIndex === undefined) {
+    for (var i = 0; i < names.length; i++) {
+      if (names[i] === 'Вы') {
+        yourIndex = i;
+      }
     }
   }
   return yourIndex;
 };
 
-var getNewArrays = function (names, times) {
+var sortArrays = function (names, times) {
   var yourIndex = getIndexOfYou(names);
   if (yourIndex !== 0) {
     var tempVarName = names[0];
@@ -36,7 +40,6 @@ var getNewArrays = function (names, times) {
 
 var drawColumn = function (ctx, x, y, height, color) {
   ctx.fillStyle = color; // 'rgba(255, 0, 0, 1)';
-  ctx.beginPath();
   ctx.fillRect(x, y, HEXAGRAM_WIDTH, height);
 };
 
@@ -61,41 +64,38 @@ var getMaxTime = function (times) {
 };
 
 
-var calculateColumnHeight = function (maxTime, times, index) {
-  var hexagramHeight = HEXAGRAM_MAX_HEIGHT * times[index] / maxTime;
+var calculateColumnHeight = function (maxTime, value) {
+  var hexagramHeight = HEXAGRAM_MAX_HEIGHT * value / maxTime;
   return hexagramHeight;
 };
 
-var calculateColumnY = function (maxTime, times, index) {
-  var hexHeight = calculateColumnHeight(maxTime, times, index);
-  var hexY = HEXAGRAM_MAX_HEIGHT - hexHeight + 90;
+var calculateColumnY = function (maxTime, value) {
+  var hexHeight = calculateColumnHeight(maxTime, value);
+  var hexY = HEXAGRAM_MAX_HEIGHT - hexHeight + COLUMN_OFFSET;
   return hexY;
 };
 
-var drawTime = function (ctx, x, y, times, index) {
+var drawTime = function (ctx, x, y, value) {
   ctx.font = '16px PT Mono';
   ctx.fillStyle = '#000';
-  ctx.fillText(Math.round(times[index]), x, y);
+  ctx.fillText(Math.round(value), x, y);
 };
 
-var drawName = function (ctx, x, y, names, index) {
+var drawName = function (ctx, x, y, value) {
   ctx.font = '16px PT Mono';
   ctx.fillStyle = '#000';
-  ctx.fillText(names[index], x, y);
+  ctx.fillText(value, x, y);
 };
 
 var drawHexagram = function (ctx, maxTime, times, names) {
   for (var i = 0; i < times.length; i++) {
-    var height = calculateColumnHeight(maxTime, times, i);
+    var height = calculateColumnHeight(maxTime, times[i]);
     var x = HEXAGRAM_FIRST_X + (HEXAGRAM_WIDTH + HEXAGRAM_DISTANCE) * i;
-    var y = calculateColumnY(maxTime, times, i);
-    if (names[i] === 'Вы') {
-      drawColumn(ctx, x, y, height, 'rgba(255, 0, 0, 1)');
-    } else {
-      drawColumn(ctx, x, y, height, getBlueColors());
-    }
-    drawTime(ctx, x, y - 10, times, i);
-    drawName(ctx, x, y + height + 16, names, i);
+    var y = calculateColumnY(maxTime, times[i]);
+    var columnColor = (names[i] === 'Вы') ? 'rgba(255, 0, 0, 1)' : getBlueColors();
+    drawColumn(ctx, x, y, height, columnColor);
+    drawTime(ctx, x, y + TIME_OFFSET, times[i]);
+    drawName(ctx, x, y + height + NAME_OFFSET, names[i]);
   }
 };
 
@@ -107,6 +107,6 @@ window.renderStatistics = function (ctx, names, times) {
   ctx.fillText('Ура вы победили!', 120, 50);
   ctx.fillText('Список результатов:', 120, 66);
   var maxTime = getMaxTime(times);
-  getNewArrays(names, times);
+  sortArrays(names, times);
   drawHexagram(ctx, maxTime, times, names);
 };
