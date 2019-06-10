@@ -7,32 +7,40 @@ var HEXAGRAM_MAX_HEIGHT = 150;
 var HEXAGRAM_FIRST_X = 120;
 var TIME_OFFSET = -10;
 var NAME_OFFSET = 16;
-var COLUMN_OFFSET = 90;
+var COLUMN_Y_OFFSET = 90;
+var YOUR_COLUMN_INDEX = 0;
+var CLOUD_X = 100;
+var CLOUD_Y = 10;
+var CLOUD_SHADOW_OFFSET_X = 10;
+var CLOUD_SHADOW_OFFSET_Y = 10;
+var WIN_TEXT_POSITION_X = 120;
+var WIN_TEXT_POSITION_Y = 50;
+var ROW_TEXT_DISTANCE = 16;
 
 var renderCloud = function (ctx, x, y, color) {
   ctx.fillStyle = color;
   ctx.fillRect(x, y, CLOUD_WIDTH, CLOUD_HEIGHT);
 };
-
 var getIndexOfYou = function (names) {
   var yourIndex;
+  var i = 0;
   while (yourIndex === undefined) {
-    for (var i = 0; i < names.length; i++) {
-      if (names[i] === 'Вы') {
-        yourIndex = i;
-      }
+    if (names[i] === 'Вы') {
+      yourIndex = i;
     }
+    i++;
   }
+
   return yourIndex;
 };
 
 var sortArrays = function (names, times) {
   var yourIndex = getIndexOfYou(names);
-  if (yourIndex !== 0) {
-    var tempVarName = names[0];
-    var tempVarTime = times[0];
-    names[0] = names[yourIndex];
-    times[0] = times[yourIndex];
+  if (yourIndex !== YOUR_COLUMN_INDEX) {
+    var tempVarName = names[YOUR_COLUMN_INDEX];
+    var tempVarTime = times[YOUR_COLUMN_INDEX];
+    names[YOUR_COLUMN_INDEX] = names[yourIndex];
+    times[YOUR_COLUMN_INDEX] = times[yourIndex];
     names[yourIndex] = tempVarName;
     times[yourIndex] = tempVarTime;
   }
@@ -71,7 +79,7 @@ var calculateColumnHeight = function (maxTime, value) {
 
 var calculateColumnY = function (maxTime, value) {
   var hexHeight = calculateColumnHeight(maxTime, value);
-  var hexY = HEXAGRAM_MAX_HEIGHT - hexHeight + COLUMN_OFFSET;
+  var hexY = HEXAGRAM_MAX_HEIGHT - hexHeight + COLUMN_Y_OFFSET;
   return hexY;
 };
 
@@ -100,12 +108,12 @@ var drawHexagram = function (ctx, maxTime, times, names) {
 };
 
 window.renderStatistics = function (ctx, names, times) {
-  renderCloud(ctx, 110, 20, 'rgba(0, 0, 0, 0.7)');
-  renderCloud(ctx, 100, 10, '#fff');
+  renderCloud(ctx, CLOUD_X + CLOUD_SHADOW_OFFSET_X, CLOUD_Y + CLOUD_SHADOW_OFFSET_Y, 'rgba(0, 0, 0, 0.7)');
+  renderCloud(ctx, CLOUD_X, CLOUD_Y, '#fff');
   ctx.font = '16px PT Mono';
   ctx.fillStyle = '#000';
-  ctx.fillText('Ура вы победили!', 120, 50);
-  ctx.fillText('Список результатов:', 120, 66);
+  ctx.fillText('Ура вы победили!', WIN_TEXT_POSITION_X, WIN_TEXT_POSITION_Y);
+  ctx.fillText('Список результатов:', WIN_TEXT_POSITION_X, WIN_TEXT_POSITION_Y + ROW_TEXT_DISTANCE);
   var maxTime = getMaxTime(times);
   sortArrays(names, times);
   drawHexagram(ctx, maxTime, times, names);
